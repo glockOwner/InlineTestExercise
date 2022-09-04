@@ -5,17 +5,11 @@ class Search
     public static function search($searchInput)
     {
         $db = Db::getConnection();
-        $sql = "SELECT * FROM `comments` WHERE `body` LIKE '%$searchInput%';";
+        $sql = "SELECT comments.body AS 'comment_body', posts.title AS 'post_title' FROM `comments` INNER JOIN `posts` ON comments.postId = posts.id WHERE comments.body RLIKE '\\\b$searchInput\\\b'";
         $result = $db->query($sql);
         $posts = array();
-        while ($row = $result->fetch(PDO::FETCH_ASSOC))
-        {
-            $sql = "SELECT `title`, `id` FROM `posts` WHERE `id` = :postId;";
-            $resultPost = $db->prepare($sql);
-            $resultPost->bindParam(':postId', $row['postId']);
-            $resultPost->execute();
-            $post = $resultPost->fetch();
-            $posts[$post['title']] = $row['body'];
+        while ($row = $result->fetch()) {
+            $posts[$row['post_title']] = $row['comment_body'];
         }
         return $posts;
     }
